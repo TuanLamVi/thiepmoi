@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QUẢN LÝ THIỆP MỜI</title>
+    
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/TuanLamVi/invite/main/favicon.png">
+    <link rel="shortcut icon" type="image/png" href="https://raw.githubusercontent.com/TuanLamVi/invite/main/favicon.png">
+    <meta property="og:image" content="https://raw.githubusercontent.com/TuanLamVi/sendinvite/main/logo.jpg">
+    <meta property="og:type" content="website">
+
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Dancing+Script&family=Caveat&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <style>
+        :root { --pink1: #ff9a9e; --pink3: #fbc2eb; }
+        body { font-family: 'Be Vietnam Pro', sans-serif; margin: 0; background: linear-gradient(135deg, var(--pink1), var(--pink3)); display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px 10px; box-sizing: border-box; }
+        .container { width: 100%; max-width: 420px; background: white; border-radius: 22px; padding: 15px; box-shadow: 0 15px 40px rgba(0,0,0,0.2); position: relative; margin-bottom: 20px; }
+        .canvas-wrapper { position: relative; }
+        canvas { width: 100%; border-radius: 14px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        
+        .popup { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(15px); border-radius: 20px 20px 0 0; padding: 20px; box-shadow: 0 -10px 30px rgba(0,0,0,0.15); display: none; z-index: 2000; border-top: 1px solid rgba(255,255,255,0.6); box-sizing: border-box; max-height: 80vh; overflow-y: auto; }
+        .popup.active { display: block; animation: slideUp 0.3s ease-out; }
+        
+        .popup-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 2px dashed #fbc2eb; padding-bottom: 10px; }
+        .popup-title { font-size: 16px; font-weight: 700; color: #e91e63; }
+        .close-btn { width: 34px; height: 34px; border: none; background: #ff1744; color: white; border-radius: 50%; font-size: 22px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(255,23,68,0.3); }
+        .section { margin-bottom: 12px; }
+        .section-label { font-size: 12px; font-weight: 700; color: #e91e63; margin-bottom: 6px; display: block; }
+        .input-group { position: relative; display: flex; align-items: center; }
+        .input-group input, select { width: 100%; padding: 12px 35px 12px 12px; border-radius: 11px; border: 2px solid #f8c4d0; font-size: 15px; outline: none; box-sizing: border-box; font-family: inherit; background: white;}
+        select { padding: 12px; }
+        .clear-btn { position: absolute; right: 10px; background: #ccc; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
+        .size-slider { background: #fff0f5; padding: 10px 12px; border-radius: 11px; display: flex; align-items: center; gap: 10px; border: 1px solid #fbc2eb;}
+        .size-slider input[type="range"] { flex: 1; accent-color: #e91e63; }
+        #size-value { font-weight: 700; font-size: 16px; min-width: 36px; text-align: center; color: #e91e63; }
+        .palette { display: flex; justify-content: space-around; margin: 10px 0; }
+        .color-dot { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+        .action-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .btn-full { grid-column: span 2; background: linear-gradient(135deg, #4CAF50, #2E7D32); color: white; padding: 14px; border-radius: 11px; border: none; font-weight: bold; font-size: 15px; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3); }
+        .btn-download { background: #ff758c; color: white; padding: 12px; border-radius: 11px; border: none; font-weight: bold; cursor: pointer; font-size: 14px;}
+        .btn-share { background: #36d1dc; color: white; padding: 12px; border-radius: 11px; border: none; font-weight: bold; cursor: pointer; font-size: 14px;}
+
+        .main-btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        .btn-main-action { width: 100%; padding: 14px; border-radius: 12px; font-size: 14px; font-weight: bold; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .btn-edit-text { background: linear-gradient(135deg, #ff9a9e, #fbc2eb); color: #d81b60; border: 2px solid #fbc2eb; }
+        .btn-fill-event { background: #fff0f5; color: #e91e63; border: 2px dashed #e91e63; }
+        .btn-copy-link { background: #e3f2fd; color: #1976d2; border: 2px solid #90caf9; }
+
+        .event-popup-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; display: none; justify-content: center; align-items: flex-end; }
+        .event-popup { background: white; width: 100%; max-width: 480px; border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 20px; box-sizing: border-box; animation: slideUp 0.3s ease-out; max-height: 90vh; overflow-y: auto; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .ep-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #fbc2eb; padding-bottom: 10px; }
+        .ep-header h3 { margin: 0; color: #e91e63; font-size: 18px; }
+        .ep-group { margin-bottom: 12px; }
+        .ep-group label { display: block; font-weight: bold; font-size: 13px; color: #555; margin-bottom: 4px; }
+        .ep-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; box-sizing: border-box; font-family: inherit;}
+        .ep-save-btn { width: 100%; background: #e91e63; color: white; padding: 14px; border: none; border-radius: 10px; font-weight: bold; font-size: 16px; margin-top: 10px; cursor: pointer; }
+
+        .guest-container { width: 100%; max-width: 420px; background: white; border-radius: 22px; padding: 20px 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: none; margin-bottom: 20px; box-sizing: border-box; overflow: hidden; }
+        .guest-header { font-size: 16px; font-weight: bold; color: #e91e63; margin-bottom: 15px; text-align: center; border-bottom: 2px dashed #fbc2eb; padding-bottom: 10px; }
+        
+        .quick-add-box { background: #e8f5e9; padding: 15px; border-radius: 14px; margin-bottom: 15px; border: 2px dashed #4CAF50; }
+        .quick-add-title { font-size: 14px; font-weight: bold; color: #2E7D32; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
+        .quick-add-input { width: 100%; padding: 10px 12px; border: 1px solid #a5d6a7; border-radius: 8px; box-sizing: border-box; font-family: inherit; font-size: 14px; margin-bottom: 10px; outline: none; }
+        .quick-add-input:focus { border-color: #4CAF50; }
+        .quick-add-btn { width: 100%; background: #4CAF50; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; box-shadow: 0 4px 10px rgba(76, 175, 80, 0.2); }
+
+        #guestListRender { touch-action: pan-y; }
+        .swipe-anim { animation: fadeSwipe 0.3s ease-out; }
+        @keyframes fadeSwipe { from { opacity: 0; transform: translateX(15px); } to { opacity: 1; transform: translateX(0); } }
+
+        .guest-item { background: #fff0f5; padding: 15px; border-radius: 14px; border: 1px solid #fbc2eb; margin-bottom: 12px; }
+        .guest-name-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .guest-name-text { font-size: 17px; font-weight: bold; color: #d81b60; margin-bottom: 5px; }
+        .guest-status { font-size: 13px; display: flex; align-items: center; gap: 5px; color: #555; }
+        .guest-small-actions { display: flex; gap: 5px; }
+        .btn-edit-guest { background: #ff9800; color: white; border: none; border-radius: 6px; padding: 5px 8px; font-size: 12px; font-weight: bold; cursor: pointer; }
+        .btn-delete-guest { background: #f44336; color: white; border: none; border-radius: 6px; padding: 5px 8px; font-size: 12px; font-weight: bold; cursor: pointer; }
+        .guest-note { width: 100%; padding: 8px 12px; border: 1px solid #fbc2eb; border-radius: 8px; margin-bottom: 12px; box-sizing: border-box; font-family: inherit; font-size: 14px; }
+        .guest-actions { display: flex; gap: 8px; }
+        .btn-send-guest { flex: 1; background: #36d1dc; color: white; padding: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;}
+        .btn-save-note { background: #e91e63; color: white; padding: 10px 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; }
+        .page-btn { background: white; border: 2px solid #e91e63; color: #e91e63; padding: 6px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .page-btn:disabled { border-color: #ccc; color: #ccc; }
+        .page-info { font-weight: bold; color: #666; font-size: 14px; }
+
+        .footer-wrapper { width: 100%; max-width: 420px; }
+        .contact-footer { padding: 20px 18px; background: linear-gradient(135deg, #fff0f5, #ffe4f0); border-radius: 20px; border: 3px solid #ff9a9e; text-align: center; }
+        .contact-title { font-size: 14px; font-weight: 700; color: #e91e63; margin-bottom: 14px; }
+        .contact-row { display: flex; gap: 12px; justify-content: center; }
+        .contact-btn { flex: 1; background: white; border-radius: 16px; padding: 14px 12px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: #e91e63; border: 2px solid #f8c4d0; }
+        .contact-btn .icon { font-size: 32px; }
+        .contact-btn .number { font-size: 17px; font-weight: 700; }
+
+        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; }
+        .loader-spin { border: 4px solid #fbc2eb; border-top: 4px solid #e91e63; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 10px;}
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div style="font-family: 'Great Vibes'; position: absolute; opacity: 0; pointer-events: none;">Tải font</div>
+    <div style="font-family: 'Dancing Script'; position: absolute; opacity: 0; pointer-events: none;">Tải font</div>
+    <div style="font-family: 'Caveat'; position: absolute; opacity: 0; pointer-events: none;">Tải font</div>
+
+    <div id="loader"><div class="loader-spin"></div><div style="color:#e91e63; font-weight:bold; font-size: 15px;" id="loaderText">Đang chuẩn bị thiệp...</div></div>
+
+    <div class="container">
+        <div class="canvas-wrapper" id="wrapper">
+            <canvas id="canvas"></canvas>
+        </div>
+      
+        <div class="main-btn-group">
+            <button class="btn-main-action btn-edit-text" onclick="showPopup()">✍️ CHỈNH TÊN KHÁCH & XUẤT THIỆP</button>
+            <button class="btn-main-action btn-fill-event" onclick="showEventPopup()">📝 NHẬP THÔNG TIN SỰ KIỆN</button>
+            <button class="btn-main-action btn-copy-link" onclick="copyDetailLink()">🔗 COPY LINK CHI TIẾT ĐỂ GỬI</button>
+        </div>
+    </div>
+
+    <!-- POPUP CHỈNH SỬA THIỆP -->
+    <div class="popup" id="popup">
+        <div class="popup-header"><div class="popup-title">✏️ Chỉnh sửa thiệp</div><button class="close-btn" onclick="hidePopup()">×</button></div>
+        <div class="section"><label class="section-label">NỘI DUNG</label><div class="input-group"><input type="text" id="text" placeholder="Nhập tên khách mời..."><button class="clear-btn" onclick="clearText()">X</button></div></div>
+        <div class="section"><label class="section-label">KIỂU CHỮ</label><select id="font"><option value="'Great Vibes'">Great Vibes</option><option value="'Dancing Script'">Dancing Script</option><option value="'Caveat'">Caveat</option><option value="'Be Vietnam Pro'">Be Vietnam Pro</option></select></div>
+        <div class="section"><label class="section-label">KÍCH THƯỚC CHỮ</label><div class="size-slider"><input type="range" id="size" min="40" max="280" value="80" step="2"><span id="size-value">80</span></div></div>
+        <div class="section"><label class="section-label">MÀU CHỮ</label><div class="palette" id="palette"></div></div>
+        <div class="action-group"><button class="btn-download" onclick="save()">📥 TẢI VỀ</button><button class="btn-share" onclick="share()">📤 GỬI</button><button class="btn-full" onclick="saveToGuestList()">💾 LƯU VÀO DANH SÁCH</button></div>
+    </div>
+
+    <!-- POPUP KHAI BÁO THÔNG TIN SỰ KIỆN (ĐÃ THÊM ĐẾM NGƯỢC) -->
+    <div class="event-popup-overlay" id="eventPopupOverlay" onclick="closeEventPopupOnOutside(event)">
+        <div class="event-popup" id="eventPopupContent">
+            <div class="ep-header"><h3>Khai báo chi tiết sự kiện</h3><button class="close-btn" onclick="hideEventPopup()" style="width:28px; height:28px; font-size:18px;">×</button></div>
+            <div class="ep-group"><label>Tiêu đề sự kiện (VD: Lễ Thành Hôn):</label><input type="text" id="evTitle" placeholder="Lễ Thành Hôn"></div>
+            <div class="ep-group"><label>Tên Cô dâu & Chú rể:</label><input type="text" id="evNames" placeholder="Quỳnh Chi & Anh Tuấn"></div>
+            
+            <div class="ep-group">
+                <label style="color: #4CAF50;">⏳ Cài đặt Đồng hồ Đếm ngược (Quan trọng):</label>
+                <input type="datetime-local" id="evCountdown" style="border-color: #4CAF50; background: #e8f5e9;">
+                <div style="font-size: 11px; color: #666; margin-top: 3px;">Chọn chính xác ngày giờ tổ chức để đồng hồ đếm ngược hoạt động.</div>
+            </div>
+
+            <div class="ep-group"><label>Dòng thời gian hiển thị (Giờ - Ngày/Tháng):</label><input type="text" id="evTime" placeholder="10:00 Sáng - 02/05/2026"></div>
+            <div class="ep-group"><label>Tên Địa điểm / Nhà hàng:</label><input type="text" id="evLocation" placeholder="Trung tâm TCSK Khánh Huy"></div>
+            <div class="ep-group"><label>Địa chỉ cụ thể:</label><input type="text" id="evAddress" placeholder="Xã Quỳ Châu, Nghệ An"></div>
+            <div class="ep-group"><label>Link Google Maps dẫn đường:</label><input type="text" id="evMap" placeholder="https://maps.app.goo.gl/xxx"></div>
+            <div class="ep-group"><label>Hotline hỗ trợ khách mời:</label><input type="text" id="evPhone" placeholder="0984.062.140"></div>
+            <button class="ep-save-btn" onclick="saveEventDetails()" id="btnSaveEvent">💾 LƯU THÔNG TIN</button>
+        </div>
+    </div>
+
+    <!-- KHU VỰC KHÁCH MỜI DỰ KIẾN -->
+    <div class="guest-container" id="guestContainer">
+        <div class="guest-header">📋 KHÁCH MỜI DỰ KIẾN (Tổng: <span id="totalGuests">0</span>)</div>
+        
+        <div class="quick-add-box">
+            <div class="quick-add-title">📝 Thêm nhanh khách dự kiến:</div>
+            <input type="text" id="quickName" class="quick-add-input" placeholder="Tên khách mời..." onkeypress="if(event.key==='Enter') document.getElementById('quickNote').focus()">
+            <input type="text" id="quickNote" class="quick-add-input" placeholder="Ghi chú (VD: bạn bố, bạn mẹ, đại học...)" onkeypress="if(event.key==='Enter') quickAddGuest()">
+            <button class="quick-add-btn" onclick="quickAddGuest()">+ LÊN DANH SÁCH</button>
+        </div>
+
+        <div style="text-align: center; font-size: 12px; color: #999; margin-bottom: 10px;">Vuốt trái/phải để chuyển trang 👈👉</div>
+        <div id="guestListRender"></div>
+        
+        <div class="pagination"><button class="page-btn" id="prevBtn" onclick="changePage(-1)">⬅️ Trước</button><div class="page-info" id="pageInfo">1 / 1</div><button class="page-btn" id="nextBtn" onclick="changePage(1)">Sau ➡️</button></div>
+    </div>
+
+    <div class="footer-wrapper">
+        <div class="contact-footer">
+            <div class="contact-title">❤️ Liên hệ hỗ trợ ngay</div>
+            <div class="contact-row">
+                <a href="tel:0984062140" class="contact-btn"><span class="icon">📱</span><div><span class="label">Hotline</span><strong class="number">0984 062 140</strong></div></a>
+                <a href="https://zalo.me/0984062140" target="_blank" class="contact-btn"><span class="icon">💬</span><div><span class="label">Zalo</span><strong class="number">0984 062 140</strong></div></a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbxJWMMOscQWsCGwxdQxcrqmnmJ5wGsYle8ZFt1O6F4bEIr57h188KOi23BdkaTc9hkT/exec"; 
+
+        const canvas = document.getElementById("canvas"); const ctx = canvas.getContext("2d");
+        const popup = document.getElementById("popup"); const wrapper = document.getElementById("wrapper");
+        const textInput = document.getElementById("text"); const sizeSlider = document.getElementById("size");
+        const sizeValue = document.getElementById("size-value"); const fontSelect = document.getElementById("font");
+        const palette = document.getElementById("palette");
+
+        let activeConfig = { imageUrl: "https://raw.githubusercontent.com/TuanLamVi/sinhnhat/main/thiepmau7.png", textPosition: { x: 0.5, y: 0.152 }, defaultFontSize: 80, qrConfig: { enable: false } };
+        let img = new Image(); img.crossOrigin = "anonymous";
+        let guestList = []; 
+        let currentPage = 1; 
+        const itemsPerPage = 5; 
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const templateId = urlParams.get('id');
+
+        if (templateId) {
+            fetch(API_URL + "?action=read&id=" + templateId, { redirect: "follow" })
+                .then(res => res.text())
+                .then(text => {
+                    let data;
+                    try { data = JSON.parse(text); } catch (e) { alert("Lỗi hệ thống"); initCanvas(); return; }
+                    if (data.error) { initCanvas(); return; }
+                    
+                    let parsedQr = { enable: false };
+                    try { if(data.qrConfig && data.qrConfig !== "{}") parsedQr = JSON.parse(data.qrConfig); } catch(e){}
+
+                    activeConfig = { imageUrl: data.imageUrl, textPosition: { x: parseFloat(data.x), y: parseFloat(data.y) }, defaultFontSize: parseInt(data.fontSize) || 80, qrConfig: parsedQr };
+                    
+                    try { 
+                        if(data.eventDetails && data.eventDetails !== "{}") {
+                            const ev = JSON.parse(data.eventDetails);
+                            document.getElementById("evTitle").value = ev.title || ""; document.getElementById("evNames").value = ev.names || "";
+                            document.getElementById("evTime").value = ev.time || ""; document.getElementById("evLocation").value = ev.location || "";
+                            document.getElementById("evAddress").value = ev.address || ""; document.getElementById("evMap").value = ev.mapLink || "";
+                            document.getElementById("evPhone").value = ev.phone || "";
+                            // Load giờ đếm ngược
+                            if (ev.countdown) document.getElementById("evCountdown").value = ev.countdown;
+                        }
+                    } catch(e){}
+
+                    initCanvas(); fetchGuestList(); 
+                }).catch(err => { initCanvas(); });
+        } else { initCanvas(); }
+
+        function initCanvas() {
+            sizeSlider.value = activeConfig.defaultFontSize; sizeValue.textContent = activeConfig.defaultFontSize;
+            img.src = activeConfig.imageUrl;
+            img.onload = () => { canvas.width = img.width; canvas.height = img.height; draw(); document.getElementById('loader').style.display = 'none'; };
+        }
+
+        let currentColor = "#000000";
+        const colors = ["#000000", "#e91e63", "#9c27b0", "#3f51b5", "#d81b60", "#ff5722", "#ffffff"];
+        colors.forEach(c => { let d = document.createElement("div"); d.className = "color-dot"; d.style.background = c; d.onclick = () => { currentColor = c; draw(); }; palette.appendChild(d); });
+
+        function clearText() { textInput.value = ""; draw(); textInput.focus(); }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.drawImage(img, 0, 0);
+
+            if (activeConfig.qrConfig && activeConfig.qrConfig.enable) {
+                const qr = new QRious({ value: activeConfig.qrConfig.content, size: activeConfig.qrConfig.size, level: 'L', padding: 12, background: 'white', foreground: 'black' });
+                const qX = canvas.width * activeConfig.qrConfig.x; const qY = canvas.height * activeConfig.qrConfig.y; const half = qr.size / 2;
+                ctx.drawImage(qr.canvas, qX - half, qY - half);
+                ctx.fillStyle = currentColor; ctx.font = `bold ${Math.max(16, qr.size / 7.5)}px 'Be Vietnam Pro', sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "top"; ctx.shadowBlur = 0; 
+                ctx.fillText("Thông tin chi tiết", qX, qY + half + 8);
+            }
+
+            const text = textInput.value.trim();
+            if (text) {
+                ctx.fillStyle = currentColor; ctx.font = `${parseFloat(sizeSlider.value)}px ${fontSelect.value}`;
+                ctx.textAlign = "center"; ctx.textBaseline = "bottom"; ctx.shadowColor = "rgba(0,0,0,0.45)"; ctx.shadowBlur = 10; ctx.shadowOffsetX = 2; ctx.shadowOffsetY = 3;
+                ctx.fillText(text, canvas.width * activeConfig.textPosition.x, canvas.height * activeConfig.textPosition.y);
+                ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+            }
+        }
+
+        sizeSlider.addEventListener("input", () => { sizeValue.textContent = sizeSlider.value; draw(); });
+        textInput.addEventListener("input", draw); fontSelect.addEventListener("change", draw);
+        
+        function showPopup() { popup.classList.add("active"); }
+        function hidePopup() { popup.classList.remove("active"); }
+        wrapper.addEventListener("click", (e) => { if (e.target === wrapper || e.target === canvas) hidePopup(); });
+
+        function showEventPopup() { document.getElementById("eventPopupOverlay").style.display = "flex"; }
+        function hideEventPopup() { document.getElementById("eventPopupOverlay").style.display = "none"; }
+        function closeEventPopupOnOutside(e) { if(e.target.id === 'eventPopupOverlay') hideEventPopup(); }
+
+        function saveEventDetails() {
+            if(!templateId) return alert("Hệ thống chưa nhận diện được mã thiệp!");
+            const btn = document.getElementById("btnSaveEvent"); btn.innerText = "Đang lưu..."; btn.disabled = true;
+
+            const evData = {
+                title: document.getElementById("evTitle").value, names: document.getElementById("evNames").value,
+                time: document.getElementById("evTime").value, location: document.getElementById("evLocation").value,
+                address: document.getElementById("evAddress").value, mapLink: document.getElementById("evMap").value, phone: document.getElementById("evPhone").value,
+                countdown: document.getElementById("evCountdown").value // Lưu thời gian đếm ngược
+            };
+
+            const payload = { action: 'saveEventDetails', id: templateId, eventDetails: evData };
+            const formData = new URLSearchParams(); formData.append("data", JSON.stringify(payload));
+
+            fetch(API_URL, { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(data => {
+                btn.innerText = "✓ LƯU THÀNH CÔNG"; btn.style.background = "#4CAF50";
+                setTimeout(() => { btn.innerText = "💾 LƯU THÔNG TIN"; btn.style.background = "#e91e63"; btn.disabled = false; hideEventPopup(); }, 1500);
+            }).catch(e => { alert("Lỗi mạng!"); btn.innerText = "💾 LƯU THÔNG TIN"; btn.disabled = false; });
+        }
+
+        function copyDetailLink() {
+            if(!templateId) return alert("Lỗi: Không tìm thấy ID thiệp!");
+            const detailLink = window.location.href.split('index.html')[0] + 'chitiet.html?id=' + templateId;
+            navigator.clipboard.writeText(detailLink).then(() => { alert("✅ Đã copy link chi tiết! Hãy dán vào tin nhắn Zalo gửi cho khách nhé."); }).catch(e => alert("Lỗi copy."));
+        }
+
+        async function fetchGuestList() {
+            if(!templateId) return;
+            document.getElementById('guestContainer').style.display = 'block'; 
+            try {
+                let res = await fetch(API_URL + "?action=getGuests&inviteId=" + templateId);
+                let data = await res.json(); 
+                guestList = data.reverse(); 
+                currentPage = 1; 
+                renderGuest(); 
+            } catch(e) {}
+        }
+
+        function quickAddGuest() {
+            if(!templateId) return alert("Vui lòng tải thiệp từ trang quản trị!");
+            const name = document.getElementById("quickName").value.trim();
+            const note = document.getElementById("quickNote").value.trim();
+            if(!name) return alert("Vui lòng nhập tên khách mời dự kiến!");
+
+            const newGuestId = Date.now().toString();
+            const payload = { action: 'saveGuest', guestId: newGuestId, inviteId: templateId, guestName: name, note: note };
+            
+            guestList.unshift({ guestId: newGuestId, inviteId: templateId, guestName: name, note: note, status: 0, createdAt: new Date().toLocaleString("vi-VN") });
+            
+            document.getElementById("quickName").value = '';
+            document.getElementById("quickNote").value = '';
+            currentPage = 1; 
+            renderGuest(); 
+            document.getElementById("quickName").focus(); 
+            
+            const formData = new URLSearchParams(); formData.append("data", JSON.stringify(payload));
+            fetch(API_URL, { method: 'POST', body: formData }).catch(e => console.log("Lỗi mạng"));
+        }
+
+        function saveToGuestList() {
+            if(!templateId) return alert("Vui lòng tải thiệp từ trang quản trị!");
+            const name = textInput.value.trim(); if(!name) return alert("Vui lòng nhập tên khách mời trước khi lưu!");
+            const newGuestId = Date.now().toString();
+            const payload = { action: 'saveGuest', guestId: newGuestId, inviteId: templateId, guestName: name, note: "" };
+            guestList.unshift({ guestId: newGuestId, inviteId: templateId, guestName: name, note: "", status: 0, createdAt: new Date().toLocaleString("vi-VN") });
+            document.getElementById('guestContainer').style.display = 'block'; currentPage = 1; renderGuest(); clearText(); hidePopup();
+            const formData = new URLSearchParams(); formData.append("data", JSON.stringify(payload));
+            fetch(API_URL, { method: 'POST', body: formData }).catch(e => console.log("Lỗi mạng"));
+        }
+
+        function deleteGuest(guestId, index) {
+            if(confirm("Bạn có chắc chắn muốn xóa khách này khỏi dự kiến?")) {
+                guestList.splice(index, 1); 
+                const totalPages = Math.ceil(guestList.length / itemsPerPage);
+                if (currentPage > totalPages && currentPage > 1) currentPage--;
+                renderGuest();
+                const formData = new URLSearchParams(); formData.append("data", JSON.stringify({ action: 'deleteGuest', guestId: guestId }));
+                fetch(API_URL, { method: 'POST', body: formData });
+            }
+        }
+
+        function editGuestName(guestId, index) {
+            const currentName = guestList[index].guestName; const newName = prompt("Sửa tên khách mời:", currentName);
+            if (newName && newName.trim() !== "" && newName !== currentName) {
+                guestList[index].guestName = newName.trim(); renderGuest(); 
+                const formData = new URLSearchParams(); formData.append("data", JSON.stringify({ action: 'updateGuest', guestId: guestId, guestName: newName.trim() }));
+                fetch(API_URL, { method: 'POST', body: formData });
+            }
+        }
+
+        function updateGuestData(guestId, note, status) {
+            const payload = { action: 'updateGuest', guestId: guestId };
+            if(note !== null) payload.note = note; if(status !== null) payload.status = status;
+            const formData = new URLSearchParams(); formData.append("data", JSON.stringify(payload)); fetch(API_URL, { method: 'POST', body: formData });
+        }
+
+        function saveNote(guestId, index) {
+            const noteVal = document.getElementById('note_' + guestId).value; guestList[index].note = noteVal; updateGuestData(guestId, noteVal, null);
+            const btn = event.target; const oldText = btn.innerText; const oldBg = btn.style.background;
+            btn.innerText = "✓ Đã lưu"; btn.style.background = "#4CAF50"; setTimeout(() => { btn.innerText = oldText; btn.style.background = oldBg; }, 1200); 
+        }
+
+        function renderGuest() {
+            document.getElementById('totalGuests').innerText = guestList.length;
+            const container = document.getElementById('guestListRender'); 
+            container.innerHTML = ''; 
+            
+            if(guestList.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding: 20px; color:#999; font-style:italic;">Danh sách đang trống. Hãy nhập thêm khách dự kiến ở trên!</div>';
+                document.getElementById('pageInfo').innerText = `1 / 1`;
+                document.getElementById('prevBtn').disabled = true; document.getElementById('nextBtn').disabled = true;
+                return;
+            }
+
+            const totalPages = Math.ceil(guestList.length / itemsPerPage); if (currentPage > totalPages) currentPage = totalPages; if (currentPage < 1) currentPage = 1;
+            const startIndex = (currentPage - 1) * itemsPerPage; const endIndex = Math.min(startIndex + itemsPerPage, guestList.length);
+
+            container.classList.remove('swipe-anim');
+            void container.offsetWidth; 
+            container.classList.add('swipe-anim');
+
+            for (let i = startIndex; i < endIndex; i++) {
+                const guest = guestList[i]; const isSent = guest.status == 1;
+                container.innerHTML += `
+                    <div class="guest-item">
+                        <div class="guest-name-row"><div style="flex: 1;"><div class="guest-name-text">${guest.guestName}</div>
+                                <label class="guest-status"><input type="checkbox" id="status_${guest.guestId}" ${isSent ? 'checked' : ''} onchange="toggleStatus('${guest.guestId}', this, ${i})"> Đã chốt gửi thiệp</label></div>
+                            <div class="guest-small-actions"><button class="btn-edit-guest" onclick="editGuestName('${guest.guestId}', ${i})">✏️ Sửa</button><button class="btn-delete-guest" onclick="deleteGuest('${guest.guestId}', ${i})">❌ Xóa</button></div></div>
+                        <input type="text" class="guest-note" id="note_${guest.guestId}" placeholder="Ghi chú (VD: bạn bố, đại học...)" value="${guest.note || ''}">
+                        <div class="guest-actions"><button class="btn-save-note" onclick="saveNote('${guest.guestId}', ${i})">Lưu</button><button class="btn-send-guest" onclick="sendSpecificGuest('${guest.guestName}', '${guest.guestId}', ${i})">📤 Gửi Thiệp Này</button></div>
+                    </div>`;
+            }
+            document.getElementById('pageInfo').innerText = `${currentPage} / ${totalPages}`;
+            document.getElementById('prevBtn').disabled = currentPage === 1; document.getElementById('nextBtn').disabled = currentPage === totalPages;
+        }
+
+        function changePage(step) { 
+            const totalPages = Math.ceil(guestList.length / itemsPerPage);
+            let newPage = currentPage + step;
+            if (newPage >= 1 && newPage <= totalPages) { currentPage = newPage; renderGuest(); }
+        }
+
+        let touchstartX = 0; let touchendX = 0;
+        const guestRenderDiv = document.getElementById('guestListRender');
+        guestRenderDiv.addEventListener('touchstart', e => { touchstartX = e.changedTouches[0].screenX; });
+        guestRenderDiv.addEventListener('touchend', e => { touchendX = e.changedTouches[0].screenX; handleSwipe(); });
+        function handleSwipe() {
+            const threshold = 50; 
+            if (touchendX < touchstartX - threshold) { changePage(1); }
+            if (touchendX > touchstartX + threshold) { changePage(-1); }
+        }
+
+        function toggleStatus(guestId, checkbox, index) { const newStatus = checkbox.checked ? 1 : 0; guestList[index].status = newStatus; updateGuestData(guestId, null, newStatus); }
+        function getFileName(nameInput) {
+            const guestName = nameInput || textInput.value.trim();
+            return guestName ? `thiep_moi_${guestName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "_")}.png` : "thiep_moi.png";
+        }
+
+        function save() { const a = document.createElement("a"); a.href = canvas.toDataURL("image/png"); a.download = getFileName(); a.click(); }
+        async function share() {
+            if (!navigator.share) return alert("Vui lòng mở bằng trình duyệt Safari/Chrome để gửi.");
+            try { const blob = await (await fetch(canvas.toDataURL("image/png"))).blob(); const file = new File([blob], getFileName(), { type: "image/png" }); await navigator.share({ files: [file] }); } catch (e) {}
+        }
+        
+        async function sendSpecificGuest(guestName, guestId, index) {
+            textInput.value = guestName; 
+            await document.fonts.ready; 
+            draw(); 
+            await new Promise(resolve => setTimeout(resolve, 300)); 
+            await share();
+            const checkbox = document.getElementById('status_' + guestId);
+            if(!checkbox.checked) { checkbox.checked = true; toggleStatus(guestId, checkbox, index); }
+        }
+    </script>
+</body>
+</html>
