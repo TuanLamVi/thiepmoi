@@ -2,6 +2,7 @@ import type React from "react";
 import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Roboto } from "next/font/google";
 import { GeistMono } from "geist/font/mono";
+import { PiAuthProvider } from "@/contexts/pi-auth-context";
 import "./globals.css";
 
 const playfairDisplay = Playfair_Display({
@@ -48,7 +49,9 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body className="bg-gradient-to-br from-pink-50 via-white to-yellow-50 antialiased">
-        {children}
+        <PiAuthProvider>
+          {children}
+        </PiAuthProvider>
       </body>
     </html>
   );
